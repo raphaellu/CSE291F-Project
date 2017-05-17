@@ -1,7 +1,8 @@
 item_user = {}
 user_item = {}
 similar_item_item = {}
-
+PRINT_ALL_CATEGORIES = False
+USE_ANY_CATEGORY = False 
 
 def export_item_user_table(filename):
 	global item_user
@@ -37,9 +38,10 @@ def export_user_item_table(filename):
 			f.write(line + '\n')
 	f.close()
 
-def read_file(filename, group):
-	global item_user, user_item, similar_item_item
+def read_file(filename, wanted_categories):
+	global item_user, user_item, similar_item_item, PRINT_ALL_CATEGORIES, USE_ANY_CATEGORY
 	print "read file ", filename, " ......"
+	category_count = {}
 
 	with open(filename, 'r') as f, open(filename.split('.')[0] + '_item_info.csv', 'w') as fcsv:
 		lines = f.readlines()
@@ -48,7 +50,7 @@ def read_file(filename, group):
 		categories = set()
 		item_asin = ''
 		customers = set()
-		fcsv.write('ASIN^title^salesrank^numOfReviews^AvgRating^nth_year^nth_rating^nth_vote^nth_helpful^.....^nth_categoty....\n')
+		fcsv.write('ASIN^title^group^salesrank^numOfReviews^AvgRating^nth_year^nth_rating^nth_vote^nth_helpful^.....^nth_categoty....\n')
 		item_csv = ''
 		for line in lines:
 			line = line.strip()		
@@ -63,7 +65,7 @@ def read_file(filename, group):
 				customers.add(customer)
 				# record item for this customer
 				if customer not in user_item:
-					user_item[customer] = set()
+					user_item[customer] = set()	
 				user_item[customer].add(item_asin)
 				# decrease counter for continued reviews
 				num_reviews = num_reviews - 1
@@ -76,9 +78,33 @@ def read_file(filename, group):
 					continue
 				tokens = line.split('|')[1:]
 				for tok in tokens:
-					categories.add(tok)
-				num_category_lines = num_category_lines - 1
+					clean_tok = tok.split('[')[0]
+					categories.add(clean_tok)
 
+					if PRINT_ALL_CATEGORIES: # display all categories
+						if clean_tok not in category_count:
+							category_count[clean_tok] = 1
+						else:
+							category_count[clean_tok] = category_count[clean_tok] + 1
+				num_category_lines = num_category_lines - 1
+				# skip the item not belonging to targeted category
+				if num_category_lines == 0:
+					if not USE_ANY_CATEGORY:
+						for wanted_category in wanted_categories:
+							if wanted_category not in categories:
+								item_asin = ''
+								break
+					else:
+						find_category = False
+						for wanted_category in wanted_categories:
+							if wanted_category in categories:
+								find_category = True
+								break
+						# if item has none of the categories
+						if not find_category:
+							item_asin = ''
+				if 'item_asin' == '':
+					continue
 
 			# start reading info for an item
 			elif line != '':
@@ -87,10 +113,7 @@ def read_file(filename, group):
 					item_asin = tokens[1]
 					item_csv = tokens[1]
 				elif tokens[0] == 'group:':
-					if tokens[1] != group:
-						item_asin = ''
-						item_csv = ''
-						continue
+					item_csv = item_csv + '^' + tokens[1]
 				elif tokens[0] == 'similar:':
 					if item_asin == '':
 						continue
@@ -122,8 +145,9 @@ def read_file(filename, group):
 						print 'categories - error'
 						print tokens
 						return
-
-
+					if num_category_lines == 0:
+						item_asin = ''
+						continue
 
 			# after reading all info for an item, re-initialize local variables
 			else:
@@ -139,6 +163,8 @@ def read_file(filename, group):
 				customers = set()
 	f.close()
 	fcsv.close()
+	if PRINT_ALL_CATEGORIES:
+		print sorted(category_count.items(), key=lambda x: x[1])
 
 def form_item_item_graph(filename):
 	global item_user, user_item
@@ -146,6 +172,7 @@ def form_item_item_graph(filename):
 	print "generating ", filename, " ......"
 	size = len(item_user)
 	count = 0
+	all_edges = set()
 
 	with open(filename, 'w') as f:
 		for item in item_user:
@@ -156,7 +183,10 @@ def form_item_item_graph(filename):
 			for user in users:
 				other_items = user_item[user]
 				for other_item in other_items:
-					f.write(item + ' ' + other_item + ' 1' + '\n')
+					if item != other_item and (item + ' ' + other_item) not in all_edges and (other_item +' ' + item) not in all_edges:
+						f.write(item + ' ' + other_item + ' 1' + '\n')
+						all_edges.add(item + ' ' + other_item)
+
 	f.close()
 
 def form_user_user_graph(filename):
@@ -180,7 +210,12 @@ def form_user_user_graph(filename):
 
 if __name__ == '__main__':
 	filename = 'amazon-meta.txt'
-	read_file(filename, 'Music')	
+
+	# you can also specify multiple wanted categories in form of ['Networks','Books', 'Cats']
+	# only items associated with ALL wanted categories will be filtered
+	# set USE_ANY_CATEGORY to True for filtering items with ANY wanted categories
+	read_file(filename, ['Publishing & Books'])  
+	
 	export_item_user_table(filename.split('.')[0] + '_item_user.txt')
 	export_user_item_table(filename.split('.')[0] + '_user_item.txt')	
 	form_item_item_graph(filename.split('.')[0] + '_item_item_graph.txt')	
