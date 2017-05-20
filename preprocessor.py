@@ -4,6 +4,16 @@ similar_item_item = {}
 PRINT_ALL_CATEGORIES = False
 USE_ANY_CATEGORY = False 
 
+def export_ground_truth(filename):
+	global similar_item_item
+	with open(filename, 'w') as f:
+		for item in similar_item_item:
+			line = item
+			for s_item in similar_item_item[item]:
+				line = line + ',' + s_item
+			f.write(line + '\n')
+	f.close()
+
 def export_item_user_table(filename):
 	global item_user
 	print "generating ", filename, " ......"
@@ -92,6 +102,8 @@ def read_file(filename, wanted_categories):
 					if not USE_ANY_CATEGORY:
 						for wanted_category in wanted_categories:
 							if wanted_category not in categories:
+								if item_asin in similar_item_item:
+									del similar_item_item[item_asin]
 								item_asin = ''
 								break
 					else:
@@ -102,6 +114,8 @@ def read_file(filename, wanted_categories):
 								break
 						# if item has none of the categories
 						if not find_category:
+							if item_asin in similar_item_item:
+								del similar_item_item[item_asin]
 							item_asin = ''
 				if 'item_asin' == '':
 					continue
@@ -132,6 +146,8 @@ def read_file(filename, wanted_categories):
 						print tokens
 						return
 				elif tokens[0] == 'discontinued':
+					if item_asin in similar_item_item:
+						del similar_item_item[item_asin]
 					item_asin = ''
 				# cases below are for csv file
 				elif tokens[0] == 'title:':
@@ -146,6 +162,8 @@ def read_file(filename, wanted_categories):
 						print tokens
 						return
 					if num_category_lines == 0:
+						if item_asin in similar_item_item:
+							del similar_item_item[item_asin]
 						item_asin = ''
 						continue
 
@@ -155,8 +173,7 @@ def read_file(filename, wanted_categories):
 					item_user[item_asin] = customers
 					for category in categories:
 						item_csv = item_csv + '^' + category
-					fcsv.write(item_csv+'\n')
-						
+					fcsv.write(item_csv+'\n')	
 				item_asin = ''
 				item_csv = ''
 				categories = set()
@@ -194,7 +211,8 @@ def form_user_user_graph(filename):
 
 	print "generating ", filename, " ......"
 	size = len(user_item)
-	count = 0
+	count = 0	
+	all_edges = set()
 
 	with open(filename, 'w') as f:
 		for user in user_item:
@@ -205,7 +223,9 @@ def form_user_user_graph(filename):
 			for item in items:
 				other_users = item_user[item]
 				for other_user in other_users:
-					f.write(user + ' ' + other_user + ' 1' + '\n')
+					if user != other_user and (user + ' ' + other_user) not in all_edges and (other_user +' ' + user) not in all_edges:
+						f.write(user + ' ' + other_user + ' 1' + '\n')
+						all_edges.add(user + ' ' + other_user)
 	f.close()
 
 if __name__ == '__main__':
@@ -218,5 +238,6 @@ if __name__ == '__main__':
 	
 	export_item_user_table(filename.split('.')[0] + '_item_user.txt')
 	export_user_item_table(filename.split('.')[0] + '_user_item.txt')	
+	export_ground_truth(filename.split('.')[0]+'_ground_truth.txt')
 	form_item_item_graph(filename.split('.')[0] + '_item_item_graph.txt')	
-	# form_item_item_graph(filename.split('.')[0] + '_user_user_graph.txt')		
+	# form_user_user_graph(filename.split('.')[0] + '_user_user_graph.txt')
