@@ -11,6 +11,7 @@ reads 'amazon-meta.txt', outputs
 2. sample_groundtruth.py
 
 3. project data analysis.ipynb
+Generate properties and respective plots. Analysis included in final paper.
 
 4. generate ground truth graph.ipynb
 Reads in 'amazon-meta_filtered_ground_truth.txt'
