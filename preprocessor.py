@@ -1,10 +1,22 @@
+""" This file pre-processes the raw amazon dataset to correct format
+that we can conduct common neighbor algorithm/ supervised machine learning/
+supervised random walks algorithm on """
+
+import matplotlib.pyplot as plt
+import math
+
 item_user = {}
 user_item = {}
 similar_item_item = {}
+
+# flag for category-related statistics
 PRINT_ALL_CATEGORIES = False
+
+# flag for choosing category filtering metric
 USE_ANY_CATEGORY = False 
 
 def export_ground_truth(filename):
+	""" export ground truth file (similar items from dataset) """
 	global similar_item_item
 	with open(filename, 'w') as f:
 		for item in similar_item_item:
@@ -15,6 +27,7 @@ def export_ground_truth(filename):
 	f.close()
 
 def export_item_user_table(filename):
+	""" export a hashmap storing <item, [users]> """
 	global item_user
 	print "generating ", filename, " ......"
 	size = len(item_user)
@@ -23,6 +36,7 @@ def export_item_user_table(filename):
 	with open(filename, 'w') as f:
 		for item in item_user:
 			count = count + 1
+			# track the progress 
 			if count % 1000 == 0:
 				print (100*count/float(size)),'% finished...'
 			line = item
@@ -32,6 +46,7 @@ def export_item_user_table(filename):
 	f.close()
 
 def export_user_item_table(filename):
+	""" export a hashmap storing <user, [items]> """
 	global user_item
 
 	print "generating ", filename, " ......"
@@ -40,6 +55,7 @@ def export_user_item_table(filename):
 	with open(filename, 'w') as f:
 		for user in user_item:
 			count = count + 1
+			# track the progress
 			if count % 1000 == 0:
 				print (100*count/float(size)),'% finished...'
 	 		line = user
@@ -49,6 +65,7 @@ def export_user_item_table(filename):
 	f.close()
 
 def read_file(filename, wanted_categories):
+	""" read the raw amazon dataset and output graph-related data """
 	global item_user, user_item, similar_item_item, PRINT_ALL_CATEGORIES, USE_ANY_CATEGORY
 	print "read file ", filename, " ......"
 	category_count = {}
@@ -57,9 +74,9 @@ def read_file(filename, wanted_categories):
 		lines = f.readlines()
 		num_reviews = 0
 		num_category_lines = 0
-		categories = set()
+		categories = set() # track all unique categories
 		item_asin = ''
-		customers = set()
+		customers = set() # track all unique customers of one item
 		fcsv.write('ASIN^title^group^salesrank^numOfReviews^AvgRating^nth_year^nth_rating^nth_vote^nth_helpful^.....^nth_categoty....\n')
 		item_csv = ''
 		for line in lines:
@@ -149,7 +166,7 @@ def read_file(filename, wanted_categories):
 					if item_asin in similar_item_item:
 						del similar_item_item[item_asin]
 					item_asin = ''
-				# cases below are for csv file
+				# cases below are for csv file that stores all item info
 				elif tokens[0] == 'title:':
 					item_csv = item_csv + '^' + line[7:]
 				elif tokens[0] == 'salesrank:':
@@ -180,10 +197,29 @@ def read_file(filename, wanted_categories):
 				customers = set()
 	f.close()
 	fcsv.close()
+
+	# for category-related statistical purpose
 	if PRINT_ALL_CATEGORIES:
 		print sorted(category_count.items(), key=lambda x: x[1])
+		count_freq = {}
+		for c in category_count:
+			v = category_count[c]
+			if v not in count_freq:
+				count_freq[v] = 0
+			count_freq[v] = count_freq[v] + 1
+		x_count = []
+		y_freq = []
+		for c in count_freq:
+			x_count.append(math.log(c,10))
+			y_freq.append(math.log(count_freq[c],10))
+		plt.plot(x_count, y_freq, 'bx')
+		plt.xlabel('Category Count (log)')
+		plt.ylabel('Occurrence (log)')
+		plt.title('log-log Category count-occurrence graph')
+		plt.show()
 
 def form_item_item_graph(filename):
+	""" construct an item-item graph based on item-user table and user-item table"""
 	global item_user, user_item
 	
 	print "generating ", filename, " ......"
@@ -192,11 +228,14 @@ def form_item_item_graph(filename):
 	all_edges = set()
 
 	with open(filename, 'w') as f:
+		# for every item, find all its users
 		for item in item_user:
 			count = count + 1
+			# track progress
 			if count % 1000 == 0:
 				print (100*count/float(size)),'% finished...'			
 			users = item_user[item]
+			# for every user who bought that item, find other items this user bought
 			for user in users:
 				other_items = user_item[user]
 				for other_item in other_items:
@@ -207,6 +246,7 @@ def form_item_item_graph(filename):
 	f.close()
 
 def form_user_user_graph(filename):
+	""" construct a user-user graph based on item-user table and user-item table"""
 	global item_user, user_item
 
 	print "generating ", filename, " ......"
@@ -215,11 +255,13 @@ def form_user_user_graph(filename):
 	all_edges = set()
 
 	with open(filename, 'w') as f:
+		# for every user, find all items he/she bought
 		for user in user_item:
 			count = count + 1
 			if count % 1000 == 0:
 				print (100*count/float(size)),'% finished...'	
 			items = user_item[user]
+			# for every item, find other users who bought this item
 			for item in items:
 				other_users = item_user[item]
 				for other_user in other_users:
