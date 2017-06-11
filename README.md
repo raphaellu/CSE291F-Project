@@ -26,4 +26,8 @@
 <br />Reads in 'amazon-meta_filtered_ground_truth.txt', 'amazon-meta_item_item_0.txt', 'amazon-meta_item_info.csv'
 <br />Extracting features from training set and performs different algorithms to predict classification and recommendations
 
+7. Generate graph for SRW.ipynb
+<br />Reads in 'amazon-meta_filtered_ground_truth.txt'
+<br />Outputs 'amazon-meta_item_item_1.txt','amazon-meta_item_item_2.txt'
+<br />Split ground truth file into training and testing files
 
