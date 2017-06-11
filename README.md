@@ -1,6 +1,10 @@
 # CSE291F-Project
 This repository contains files used for data pre-processing and implementations of multiple algorithms (common-neighbor, supervised machine learning, supervised random walk) targeting recommendation system using amazon dataset.
 
+### 0. amazon-meta.txt
+Please download and upzip it from this link: http://snap.stanford.edu/data/amazon-meta.html
+Put it into the same directory as codes.
+
 ### 1. prepocessor.py
 <br />reads 'amazon-meta.txt', outputs
 - amazon-meta_item_user.txt: item [users]
