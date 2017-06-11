@@ -13,7 +13,7 @@
 3. project data analysis.ipynb
 <br />Generate properties and respective plots. Analysis included in final paper.
 
-4. generate ground truth graph.ipynb
+4. generate ground truth graph ML.ipynb
 <br />Reads in 'amazon-meta_filtered_ground_truth.txt'
 <br />Outputs 'amazon-meta_item_item_0.txt' 
 <br />Generate ground truth graph for Machine Learning Approach
@@ -22,7 +22,7 @@
 <br />Reads in 'amazon-meta_item_item_graph.txt', 'amazon-meta_filtered_ground_truth.txt'
 <br />Performs common neighbors algorithm and predict classification and recommendations
 
-6. Generic model.ipynb (Machine Learning Approach)
+6. ML algorithm.ipynb (Machine Learning Approach)
 <br />Reads in 'amazon-meta_filtered_ground_truth.txt', 'amazon-meta_item_item_0.txt', 'amazon-meta_item_info.csv'
 <br />Extracting features from training set and performs different algorithms to predict classification and recommendations
 
