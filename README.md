@@ -1,5 +1,5 @@
 # CSE291F-Project
-This repository contains files used for data pre-processing and implementations of multiple algorithms (nearest-neighbor, supervised machine learning, supervised random walk) targeting recommendation system using amazon dataset.
+This repository contains files used for data pre-processing and implementations of multiple algorithms (common-neighbor, supervised machine learning, supervised random walk) targeting recommendation system using amazon dataset.
 
 ### 1. prepocessor.py
 <br />reads 'amazon-meta.txt', outputs
