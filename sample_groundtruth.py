@@ -1,3 +1,6 @@
+""" This file samples and filters a fraction of data from ground truth file for testing purpose """
+""" it is necessary to do this pre-processing when the constructed graph does not contain all 
+items (i.e. the data file contains nodes that are not in the constructed graph) """
 from random import random
 
 def sample_lines(readfile, writefile, sample_rate):
@@ -10,9 +13,12 @@ def sample_lines(readfile, writefile, sample_rate):
 	f.close()
 
 def check_existing_rate(readfile, writefile):
+	""" filters the ground truth file such that the ground truth file does not contain 
+	nodes that are not in the constructed graph"""
 	similar_item_item = {}
 	count = 0;
 	total = 0;
+	# construct the dictionary <node, [similar nodes]>
 	with open(readfile, 'r') as f:
 		lines = f.readlines()
 		for line in lines:
@@ -22,6 +28,7 @@ def check_existing_rate(readfile, writefile):
 			total = total + len(tokens[1:])
 	f.close()
 
+	# only write down node and similar nodes that are keys in the dictionary
 	with open(writefile, 'w') as f:
 		for key in similar_item_item:
 			line = key;
@@ -32,6 +39,8 @@ def check_existing_rate(readfile, writefile):
 					line = line + ',' + other
 			f.write(line + '\n')
 	f.close()
+	# display the fraction of previously existed nodes in the graph (fraction of nodes
+	# that are not removed)
 	print 'existing rate: ', count/float(total)
 
 if __name__ == '__main__':
