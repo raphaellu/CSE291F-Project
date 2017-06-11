@@ -27,7 +27,11 @@
 <br />Extracting features from training set and performs different algorithms to predict classification and recommendations
 
 7. Generate graph for SRW.ipynb
-<br />Reads in 'amazon-meta_filtered_ground_truth.txt'
+<br />Reads in 'amazon-meta_filtered_ground_truth.txt', 'amazon-meta_filtered_ground_truth.txt', 'amazon-meta_item_info.csv'
 <br />Outputs 'amazon-meta_item_item_1.txt','amazon-meta_item_item_2.txt'
 <br />Split ground truth file into training and testing files
+
+8. SRW.ipynb (Graph Mining Approach)
+<br />Reads in 'amazon-meta_item_item_1.txt','amazon-meta_item_item_2.txt','amazon-meta_filtered_ground_truth.txt'
+<br />Performs Supervised Random Walk algorithm and predict classification and recommendations
 
